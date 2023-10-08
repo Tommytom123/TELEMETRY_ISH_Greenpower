@@ -41,6 +41,9 @@ int counter = 0;
 int prevtime = 0;
 int curtime = 0;
 
+//Other Vars
+int throttlePin = A0;
+int throttle = 0;
 
 void setup() {
   delay(100);
@@ -48,8 +51,12 @@ void setup() {
   // ---- Interupt and Pin Setup ----
   pinMode(btnPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(btnPin), resetGyro, RISING);
-  pinMode(rpmPin, INPUT);
-  attachInterrupt(digitalPinToInterrupt(rpmPin), RPM_Func, FALLING);
+  
+  pinMode(rpmPin, OUTPUT);
+  //attachInterrupt(digitalPinToInterrupt(rpmPin), RPM_Func, FALLING);
+
+  analogWriteRange(1024); // Default is 8 bit, 0-254
+  analogWriteFreq(1000); //Hz
 
   // ---- Screen Setup ----
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -64,7 +71,9 @@ void setup() {
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
   display.setTextSize(1);
-
+  display.println("SETUP");
+  display.display();
+  delay(1000);
   // ---- Screen Setup ----
   while (sensor.wakeup() == false)
   {
@@ -93,7 +102,7 @@ void setup() {
 }
 
 
-void loop() {
+void loop() { //One loop takes about 30ms
   display.clearDisplay();
   curtime = millis();
   sensor.read();
@@ -109,7 +118,6 @@ void loop() {
   float deltaGX = deltaTime * gx;
   angleGX += deltaGX / 1000;
 
-  //DateTime now = rtc.now();
   display.setCursor(0,0);
   display.println(millis());
   display.print(F("X Rot:"));
@@ -120,7 +128,13 @@ void loop() {
   display.println(angleGZ); 
   display.print(F("RPM:"));
   display.println(RPM); 
-  if(counter % 10 == 0){ 
+  throttle = analogRead(throttlePin);
+  display.print(F("Throttle:"));
+  display.println(throttle); 
+
+  analogWrite(rpmPin, throttle);
+  
+  if(counter % 3 == 0){ // Runs this every 3 loops, resulting in about 
 
     myFile = SD.open("TestVals.csv", FILE_WRITE);
     if (myFile) {
@@ -130,7 +144,7 @@ void loop() {
         myFile.print(",");
         myFile.print(angleGY);
         myFile.print(",");
-        myFile.println(angleGZ);
+        myFile.print(angleGZ);
         myFile.print(",");
         myFile.println(RPM); 
         //Serial.println("Update SD");
@@ -145,17 +159,17 @@ void loop() {
   if(noSD == true){
     display.println("NO SD CARD");
   }
-  
+  /*
   if (digitalRead(rpmPin) == HIGH){ // Stops 'bouncing' of the hall effect sensor. The reason why there is a difference between 'prevTime' and 'lowTime' is because the former is the time the moment a magnet was detected, while the latter changes to the latest time a magnet was detected. Ask Tom Brouwers for more information if necessary.
     lowTimeRPM = millis();
   } else if (millis() - lowTimeRPM > 3000){
     RPM = 0;
-  }
+  }*/
 
   counter++;
   prevtime = curtime;
   display.display();
-  delay(30); 
+  //delay(30); 
 } //Total delays: 30 ms
 
 //HELPER FUNCTIONS
