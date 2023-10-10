@@ -21,19 +21,16 @@ bool noSD = true;
 
 
 //RPM Vars
-//const int rpmPin = 0;
-
-const float diameter = 0.001; //km
-const float circumference = 2 * 3.1415926 * diameter;
-
-volatile unsigned long prevTimeRPM = 0; //Volatile as it is used both in the interrupt and main loop
-volatile unsigned long lowTimeRPM = 0;
+const int rpmPin = 2;
+const float wheelCirc = 0.002*60; //Wheel circumfrence in km * 60 (*60 to convert to km/h from km/m)
+volatile unsigned long lowTimeRPM = 0; //Volatile as it is used in interrupt
+volatile unsigned long prevTimeRPM = 0;
 volatile int RPM = 0;
 
 
 //Gyro Vars
 GY521 sensor(0x69); //If AD0 Connected to GND, 0x68, if connected to VCC 0x69
-const int btnPin = 2;
+//const int btnPin = 2;
 volatile float angleGZ = 0;
 volatile float angleGY = 0;
 volatile float angleGX = 0;
@@ -53,13 +50,13 @@ void setup() {
   delay(100);
   Serial.begin(115200);
   // ---- Interupt and Pin Setup ----
-  pinMode(btnPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(btnPin), resetGyro, RISING);
+  //pinMode(btnPin, INPUT_PULLUP);
+  //attachInterrupt(digitalPinToInterrupt(btnPin), resetGyro, RISING);
   
   pinMode(potPin, OUTPUT);
 
-  //pinMode(rpmPin, INPUT);
-  //attachInterrupt(digitalPinToInterrupt(rpmPin), RPM_Func, FALLING);
+  pinMode(rpmPin, INPUT);
+  attachInterrupt(digitalPinToInterrupt(rpmPin), RPM_Func, RISING);
 
   analogWriteRange(1024); // Default is 8 bit, 0-254
   analogWriteFreq(1000); //Hz
@@ -134,8 +131,10 @@ void loop() { //One loop takes about 30ms
   display.println(angleGZ); 
   display.print(F("RPM:"));
   display.println(RPM); 
+  display.print(F("Speed:"));
+  display.println((RPM*wheelCirc)); 
   throttle = analogRead(throttlePin);
-  throttlePerc = (throttle - 40) / 1024.0 - 40; // Find perc range = ((input - min) * 100) / (max - min) | For the min value, we would want it to be slightly higher than the lowest measurable value to avoid any jitter.
+  throttlePerc = (throttle - 40) / (1024.0 - 40); // Find perc range = ((input - min) * 100) / (max - min) | For the min value, we would want it to be slightly higher than the lowest measurable value to avoid any jitter.
   display.print(F("Throttle:"));
   display.println(throttlePerc); 
 
@@ -166,12 +165,12 @@ void loop() { //One loop takes about 30ms
   if(noSD == true){
     display.println("NO SD CARD");
   }
-  /*
+  
   if (digitalRead(rpmPin) == HIGH){ // Stops 'bouncing' of the hall effect sensor. The reason why there is a difference between 'prevTime' and 'lowTime' is because the former is the time the moment a magnet was detected, while the latter changes to the latest time a magnet was detected. Ask Tom Brouwers for more information if necessary.
     lowTimeRPM = millis();
   } else if (millis() - lowTimeRPM > 3000){
     RPM = 0;
-  }*/
+  }
 
   counter++;
   prevtime = curtime;
@@ -197,15 +196,16 @@ ICACHE_RAM_ATTR void resetGyro(){
   angleGX = 0;
   Serial.println("Reset");
 } 
-/*
+
 ICACHE_RAM_ATTR void RPM_Func(){ // Gets called when D4 is high (When the hall effect sensor senses a magnetic field)
-  Serial.println("RPM update");
+  
   unsigned long curTimeRPM = millis();
-  if (curTimeRPM - lowTimeRPM > 50){ // If time between previous 'HIGH' state of the sensor is greater than 100 ms (Debouncing)
-    RPM = 60000/(curTimeRPM - prevTimeRPM); // 1 Minute (in ms) over time of one rotation (ms)
-   
+  if (curTimeRPM - lowTimeRPM > 40){ // If time between previous 'HIGH' state of the sensor is greater than 100 ms (Debouncing)
+    //Serial.println("RPM update");
+    RPM = (60000/(curTimeRPM - prevTimeRPM)); // 1 Minute (in ms) over time of one rotation (ms) | if more magnets on driveshaft, divide by number of magnets
+    lowTimeRPM = curTimeRPM;
+    prevTimeRPM = curTimeRPM;
   }
-  prevTimeRPM = curTimeRPM; // Initial trigger time
-  lowTimeRPM = curTimeRPM;
+  
 } 
-*/
+
