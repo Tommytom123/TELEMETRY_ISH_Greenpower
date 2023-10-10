@@ -18,8 +18,10 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 File myFile;
 bool noSD = true;
 
+
+
 //RPM Vars
-const int rpmPin = 0;
+//const int rpmPin = 0;
 
 const float diameter = 0.001; //km
 const float circumference = 2 * 3.1415926 * diameter;
@@ -44,6 +46,8 @@ int curtime = 0;
 //Other Vars
 int throttlePin = A0;
 int throttle = 0;
+float throttlePerc = 0;
+const int potPin = 0;
 
 void setup() {
   delay(100);
@@ -52,7 +56,9 @@ void setup() {
   pinMode(btnPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(btnPin), resetGyro, RISING);
   
-  pinMode(rpmPin, OUTPUT);
+  pinMode(potPin, OUTPUT);
+
+  //pinMode(rpmPin, INPUT);
   //attachInterrupt(digitalPinToInterrupt(rpmPin), RPM_Func, FALLING);
 
   analogWriteRange(1024); // Default is 8 bit, 0-254
@@ -129,10 +135,11 @@ void loop() { //One loop takes about 30ms
   display.print(F("RPM:"));
   display.println(RPM); 
   throttle = analogRead(throttlePin);
+  throttlePerc = (throttle - 40) / 1024.0 - 40; // Find perc range = ((input - min) * 100) / (max - min) | For the min value, we would want it to be slightly higher than the lowest measurable value to avoid any jitter.
   display.print(F("Throttle:"));
-  display.println(throttle); 
+  display.println(throttlePerc); 
 
-  analogWrite(rpmPin, throttle);
+  analogWrite(potPin, throttle);
   
   if(counter % 3 == 0){ // Runs this every 3 loops, resulting in about 
 
@@ -190,7 +197,7 @@ ICACHE_RAM_ATTR void resetGyro(){
   angleGX = 0;
   Serial.println("Reset");
 } 
-
+/*
 ICACHE_RAM_ATTR void RPM_Func(){ // Gets called when D4 is high (When the hall effect sensor senses a magnetic field)
   Serial.println("RPM update");
   unsigned long curTimeRPM = millis();
@@ -200,5 +207,5 @@ ICACHE_RAM_ATTR void RPM_Func(){ // Gets called when D4 is high (When the hall e
   }
   prevTimeRPM = curTimeRPM; // Initial trigger time
   lowTimeRPM = curTimeRPM;
-}
-
+} 
+*/
