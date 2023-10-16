@@ -40,9 +40,12 @@ void setup() {
   sensor.setThrottle();
 
   // Set calibration
-  sensor.gxe = 1;
-  sensor.gye = 1;
-  sensor.gze = 0;
+  sensor.axe = -0.0131885;
+  sensor.aye = 0.0028174;
+  sensor.aze = -1.0326611;
+  sensor.gxe = 1.8501527;
+  sensor.gye = 1.1008397;
+  sensor.gze = 0.2435878;
   Serial.println(F("Gyro Setup"));
 }
 
