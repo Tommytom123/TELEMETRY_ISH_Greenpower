@@ -22,7 +22,7 @@ volatile float angleGX = 0;
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(115200);
+  Serial.begin(9600);
   Wire.begin();
 
   pinMode(rpmPin, INPUT);

@@ -40,7 +40,7 @@ String data;
 
 void setup() {
   delay(100);
-  Serial.begin(115200);
+  Serial.begin(9600);
   Wire.begin();
   // ---- Interupt and Pin Setup ----
 
