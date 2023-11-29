@@ -11,15 +11,12 @@ int prevtime = 0;
 int curtime = 0;
 
 //Gyro Vars
-GY521 sensor(0x69); //If AD0 Connected to GND, 0x68, if connected to VCC 0x69
+//GY521 sensor(0x69); //If AD0 Connected to GND, 0x68, if connected to VCC 0x69
 //const int btnPin = 2;
-volatile float angleGZ = 0;
-volatile float angleGY = 0;
-volatile float angleGX = 0;
-
-  
-
-
+volatile float angleGZ = 1;
+volatile float angleGY = 2;
+volatile float angleGX = 3;
+ 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -28,35 +25,34 @@ void setup() {
   pinMode(rpmPin, INPUT);
   attachInterrupt(digitalPinToInterrupt(rpmPin), RPM_Func, RISING);
   
-
+/*
   while (sensor.wakeup() == false)
   {
     Serial.print(millis());
     Serial.println(F("\tCould not connect to GY521"));
     delay(1000);
-  }
-  sensor.setAccelSensitivity(0);  //  2g
-  sensor.setGyroSensitivity(0);   //  250 degrees/s
-  sensor.setThrottle();
-
+  } */
+  //sensor.setAccelSensitivity(0);  //  2g
+ // sensor.setGyroSensitivity(0);   //  250 degrees/s
+ // sensor.setThrottle();
+/*
   // Set calibration
   sensor.axe = -0.0131885;
   sensor.aye = 0.0028174;
   sensor.aze = -1.0326611;
   sensor.gxe = 1.8501527;
   sensor.gye = 1.1008397;
-  sensor.gze = 0.2435878;
+  sensor.gze = 0.2435878; */
   Serial.println(F("Gyro Setup"));
 }
 
-
 void loop() {
   // put your main code here, to run repeatedly:
-  curtime = millis();
-  sensor.read();
-  int gx = sensor.getGyroX();
-  int gy = sensor.getGyroY();
-  int gz = sensor.getGyroZ();
+  curtime = millis(); 
+  //sensor.read();
+  int gx = 1; //sensor.getGyroX();
+  int gy = 2; //sensor.getGyroY();
+  int gz = 0;//sensor.getGyroZ();
 
   int deltaTime = curtime - prevtime;
   float deltaGZ = deltaTime * gz;
@@ -66,14 +62,14 @@ void loop() {
   float deltaGX = deltaTime * gx;
   angleGX += deltaGX / 1000;
 
-    if (digitalRead(rpmPin) == HIGH){ // Stops 'bouncing' of the hall effect sensor. The reason why there is a difference between 'prevTime' and 'lowTime' is because the former is the time the moment a magnet was detected, while the latter changes to the latest time a magnet was detected. Ask Tom Brouwers for more information if necessary.
+  if (digitalRead(rpmPin) == HIGH){ // Stops 'bouncing' of the hall effect sensor. The reason why there is a difference between 'prevTime' and 'lowTime' is because the former is the time the moment a magnet was detected, while the latter changes to the latest time a magnet was detected. Ask Tom Brouwers for more information if necessary.
     lowTimeRPM = millis();
   } else if (millis() - lowTimeRPM > 3000){
     RPM = 0;
   }
   //Serial.println("Start");
   Serial.print("Z");
-  Serial.print(angleGZ);
+  Serial.print(millis());
   Serial.print("Y");
   Serial.print(angleGY);
   Serial.print("X");

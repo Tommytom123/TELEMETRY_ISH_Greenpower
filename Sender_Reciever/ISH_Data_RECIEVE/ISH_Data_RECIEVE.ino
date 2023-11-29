@@ -16,9 +16,9 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 //PINS
-const int THROTTLE_PIN_IN = A0;
-const int BTN_PIN_LEFT = 0;
-const int BTN_PIN_RIGHT = 2;
+const int THROTTLE_PIN_IN = 32;
+const int BTN_PIN_LEFT = 33;
+const int BTN_PIN_RIGHT = 25;
 //const int MODE_SWITCH = ; // Commented out as I need more pins :\ . Likely a 3 way switch where we can change the car driving mode - Max Efficiency, Slow, Max Speed
 
 //SD Setup
@@ -38,20 +38,44 @@ int R;
 String data;
 
 
+
+// INTERUPTS FOR BUTTONS AND SUCH
+
+void IRAM_ATTR BTN_PRESSED_LEFT(){
+  curTime = millis();
+  if (curTime - debounceTime > 100){
+    page += 1;
+    debounceTime = curTime;
+  }
+    
+}
+
+void IRAM_ATTR BTN_PRESSED_RIGHT(){
+  int curTime = millis();
+  if (curTime - debounceTime > 100){
+    page += -1;
+    debounceTime = curTime;
+  }
+}
+
+#define RXD2 16
+#define TXD2 17
+
 void setup() {
   delay(100);
   Serial.begin(9600);
+  Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
   Wire.begin();
   // ---- Interupt and Pin Setup ----
 
   pinMode(BTN_PIN_LEFT, INPUT_PULLUP);
   pinMode(BTN_PIN_RIGHT, INPUT_PULLUP);
   //pinMode(MODE_SWITCH, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(BTN_PIN_LEFT), BTN_PRESSED_LEFT, RISING);
-  attachInterrupt(digitalPinToInterrupt(BTN_PIN_RIGHT), BTN_PRESSED_RIGHT, RISING);
+  attachInterrupt(BTN_PIN_LEFT, BTN_PRESSED_LEFT, RISING);
+  attachInterrupt(BTN_PIN_RIGHT, BTN_PRESSED_RIGHT, RISING);
 
-  analogWriteRange(1024); // Default is 8 bit, 0-254
-  analogWriteFreq(1000); //Hz
+  //analogWriteRange(1024); // Default is 8 bit, 0-254
+  //analogWriteFreq(1000); //Hz
 
   // ---- Screen Setup ----
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -71,7 +95,7 @@ void setup() {
   delay(1000);
   
   // ---- SD Setup ----
-  if (!SD.begin(15)) {
+  if (!SD.begin(5)) {
     Serial.println("SD initialization failed!");
     return;
   }
@@ -135,14 +159,15 @@ void DISPLAY_FUNC(){
 
 void GET_THROT_PERC(){
   int throttle = analogRead(THROTTLE_PIN_IN);
-  throttlePerc = (throttle - 50) / (1024.0 - 50); // Find perc range = ((input - min) * 100) / (max - min) | For the min value, we would want it to be slightly higher than the lowest measurable value to avoid any jitter.
+  throttlePerc = (throttle - 50) / (4095.0 - 50); // Find perc range = ((input - min) * 100) / (max - min) | For the min value, we would want it to be slightly higher than the lowest measurable value to avoid any jitter.
   if (throttlePerc < 0) {
     throttlePerc = 0;
   }
 }
 // Sd card stuff
 void INIT_SD(){
-  if (!SD.begin(15)) {
+  if (!SD.begin(5)) {
+    display.println("NO SD");
     Serial.println("SD initialization failed!");
     noSD = true;
   } else {
@@ -152,8 +177,9 @@ void INIT_SD(){
 
 void WRITE_SD(){
   // Check SD card status
+  display.println("WRITING");
   if (noSD == false) {
-    myFile = SD.open("TestVals.csv", FILE_WRITE);
+    myFile = SD.open("TestVals.csv",  FILE_WRITE);
     if (myFile) {
       myFile.print(millis());
       myFile.print(",");
@@ -172,8 +198,8 @@ void WRITE_SD(){
 }
 // Read data from other microcontroller
 void SERIAL_READ() {
-  while (Serial.available()>0) {
-    char incomingChar = Serial.read();
+  while (Serial2.available()>0) {
+    char incomingChar = Serial2.read();
     if (incomingChar == '\n') {
       // Newline character detected, break the loop and print the received data
       break;
@@ -182,8 +208,8 @@ void SERIAL_READ() {
  
 
   // Check if there's serial data available
-  if (Serial.available()) {
-    data = Serial.readStringUntil('\n'); // Read data until a newline character
+  if (Serial2.available()) {
+    data = Serial2.readStringUntil('\n'); // Read data until a newline character
     int z_pos = data.indexOf("Z");
     int y_pos = data.indexOf("Y");
     int x_pos = data.indexOf("X");
@@ -196,32 +222,13 @@ void SERIAL_READ() {
         R = data.substring(r_pos + 1).toFloat();
     } else {
         // Handle the case where the string format is not as expected
-        Z = Y = X = R = 0.0; // You can set default values or handle errors as needed
+        //Z = Y = X = R = 0.0; // You can set default values or handle errors as needed
     }
   } else {
-    Z = Y = X = R = 0.0;
+    //Z = Y = X = R = 0.0;
   }
-  while (Serial.available()>30) { // Solves some buffer overflow issues
-    char incomingChar = Serial.read();
-  }
-}
-
-
-// INTERUPTS FOR BUTTONS AND SUCH
-
-ICACHE_RAM_ATTR void BTN_PRESSED_LEFT(){
-  curTime = millis();
-  if (curTime - debounceTime > 100){
-    page += 1;
-    debounceTime = curTime;
-  }
-    
-}
-
-ICACHE_RAM_ATTR void BTN_PRESSED_RIGHT(){
-  int curTime = millis();
-  if (curTime - debounceTime > 100){
-    page += -1;
-    debounceTime = curTime;
+  while (Serial2.available()>30) { // Solves some buffer overflow issues
+    char incomingChar = Serial2.read();
   }
 }
+  

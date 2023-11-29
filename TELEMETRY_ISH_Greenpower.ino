@@ -18,8 +18,6 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 File myFile;
 bool noSD = true;
 
-
-
 //RPM Vars
 const int rpmPin = 2;
 const float wheelCirc = 0.002*60; //Wheel circumfrence in km * 60 (*60 to convert to km/h from km/m)
