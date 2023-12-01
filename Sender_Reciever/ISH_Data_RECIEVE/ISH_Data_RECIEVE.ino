@@ -1,11 +1,12 @@
-#include <SPI.h>
-#include <Wire.h>
+
+//#include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <SD.h>
+#include <FS.h>
+#include <SPI.h>
 
 #define SERIAL_BUFFER_SIZE 64
-
 
 //Screen Setup
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -23,7 +24,8 @@ const int BTN_PIN_RIGHT = 25;
 
 //SD Setup
 File myFile;
-bool noSD = true;
+bool SD_in = false;
+//uint64_t SD_space = 0;
 
 //RPM Vars
 float throttlePerc = 0;
@@ -37,35 +39,37 @@ float X, Y, Z;
 int R;
 String data;
 
+#define RXD2 16
+#define TXD2 17
+
 
 
 // INTERUPTS FOR BUTTONS AND SUCH
 
-void IRAM_ATTR BTN_PRESSED_LEFT(){
-  curTime = millis();
-  if (curTime - debounceTime > 100){
-    page += 1;
-    debounceTime = curTime;
+  void IRAM_ATTR BTN_PRESSED_LEFT(){
+    curTime = millis();
+    if (curTime - debounceTime > 100){
+      page += 1;
+      debounceTime = curTime;
+    }
+      
   }
-    
-}
 
-void IRAM_ATTR BTN_PRESSED_RIGHT(){
-  int curTime = millis();
-  if (curTime - debounceTime > 100){
-    page += -1;
-    debounceTime = curTime;
+  void IRAM_ATTR BTN_PRESSED_RIGHT(){
+    int curTime = millis();
+    if (curTime - debounceTime > 100){
+      page += -1;
+      debounceTime = curTime;
+    }
   }
-}
 
-#define RXD2 16
-#define TXD2 17
+// RUN ON INITIALIZATION
 
 void setup() {
   delay(100);
   Serial.begin(9600);
   Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
-  Wire.begin();
+
   // ---- Interupt and Pin Setup ----
 
   pinMode(BTN_PIN_LEFT, INPUT_PULLUP);
@@ -74,8 +78,9 @@ void setup() {
   attachInterrupt(BTN_PIN_LEFT, BTN_PRESSED_LEFT, RISING);
   attachInterrupt(BTN_PIN_RIGHT, BTN_PRESSED_RIGHT, RISING);
 
-  //analogWriteRange(1024); // Default is 8 bit, 0-254
-  //analogWriteFreq(1000); //Hz
+  // ---- SD Setup ----
+  
+  INIT_SD();
 
   // ---- Screen Setup ----
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -83,8 +88,6 @@ void setup() {
     for(;;); // Don't proceed, loop forever
   }
   Serial.println(F("Screen Setup"));
-  
-  delay(1000); // Pause for 1 second
 
   // Clear the buffer
   display.clearDisplay();
@@ -93,30 +96,20 @@ void setup() {
   display.println("SETUP");
   display.display();
   delay(1000);
-  
-  // ---- SD Setup ----
-  if (!SD.begin(5)) {
-    Serial.println("SD initialization failed!");
-    return;
-  }
-  Serial.println("SD Setup");
-
-  
+ 
 }
 
 void loop() { //One loop takes about 30ms
   display.clearDisplay();
   
   SERIAL_READ();  
-  if(counter % 500 == 0){ // Only runs every 500 cycles
-    INIT_SD();
-  }
 
   if(counter % 3 == 0){  
     WRITE_SD();
   }
 
   DISPLAY_FUNC();
+  
   counter++;
   display.display();
 }
@@ -145,16 +138,11 @@ void DISPLAY_FUNC(){
     }
   
   } else if(page == 1){ //Page 2
-    
     display.println("Page 2");
-    if(noSD) {
-      display.println("NO SD CARD");
-    }
-  } else{ //Page 2
-    display.println("ERROR with the page");
-  }
 
-  
+  } else{
+    display.println("ERROR with the page");
+  } 
 }
 
 void GET_THROT_PERC(){
@@ -166,35 +154,48 @@ void GET_THROT_PERC(){
 }
 // Sd card stuff
 void INIT_SD(){
-  if (!SD.begin(5)) {
-    display.println("NO SD");
-    Serial.println("SD initialization failed!");
-    noSD = true;
-  } else {
-    noSD = false; // SD card is detected
+  if(!SD.begin(5)){
+      Serial.println("Card Mount Failed");
+      return;
   }
+  uint8_t cardType = SD.cardType();
+
+  if(cardType == CARD_NONE){
+    Serial.println("No SD card attached");
+    SD_in = false;
+  } else {
+    SD_in = true;
+    myFile = SD.open("TestVals.csv", FILE_WRITE);
+    if(!myFile) {
+      myFile.println(1); // Initializes the data CSV with header
+    }
+    myFile.close();
+    Serial.println("SD Setup");
+  }
+  
+  // Currently no check to see how much space left, and to stop writing when a threshold is reached. Currently just ensure that the card is empty before running and hope for the best
+
+  //SD_space = SD.cardSize() / (1024 * 1024);
+  //Serial.printf("SD Card Size: %lluMB\n", cardSize);
 }
 
 void WRITE_SD(){
-  // Check SD card status
-  display.println("WRITING");
-  if (noSD == false) {
+  
+  if (SD_in == true) {   
     myFile = SD.open("TestVals.csv",  FILE_WRITE);
     if (myFile) {
-      myFile.print(millis());
-      myFile.print(",");
-      myFile.print(X);
-      myFile.print(",");
-      myFile.print(Y);
-      myFile.print(",");
-      myFile.print(Z);
-      myFile.print(",");
-      myFile.println(R); 
+      display.println("WRITING");
+      Serial.println(myFile.position());
+      //myFile.seek(EOF);
+      myFile.print(2); 
+      //return true
     } else {
-      noSD = true;
+      SD_in = false;
+      display.println("SD CARD error");
     }
     myFile.close();
   }
+  //return false
 }
 // Read data from other microcontroller
 void SERIAL_READ() {
