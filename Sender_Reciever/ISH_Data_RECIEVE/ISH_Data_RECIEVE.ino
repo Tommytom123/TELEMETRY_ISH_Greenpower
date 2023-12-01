@@ -20,7 +20,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 const int THROTTLE_PIN_IN = 32;
 const int BTN_PIN_LEFT = 33;
 const int BTN_PIN_RIGHT = 25;
-//const int MODE_SWITCH = ; // Commented out as I need more pins :\ . Likely a 3 way switch where we can change the car driving mode - Max Efficiency, Slow, Max Speed
+// const int MODE_SWITCH = ; // Commented out as I need more pins :\ . 
+// Likely a 3 way switch where we can change the car driving mode - Max Efficiency, Slow, Max Speed
 
 //SD Setup
 File myFile;
@@ -160,14 +161,16 @@ void INIT_SD(){
   }
   uint8_t cardType = SD.cardType();
 
+  // filename = "/Telem.csv" // We need a function here that automatically gets a new filename every time the ESP restarts, so it doesn't overwrite anything
+
   if(cardType == CARD_NONE){
     Serial.println("No SD card attached");
     SD_in = false;
   } else {
     SD_in = true;
-    myFile = SD.open("TestVals.csv", FILE_WRITE);
+    myFile = SD.open("/Telem.csv", FILE_WRITE);
     if(!myFile) {
-      myFile.println(1); // Initializes the data CSV with header
+      myFile.println("Time,Bat1V,Bat2V,Current"); // Initializes the data CSV with header
     }
     myFile.close();
     Serial.println("SD Setup");
@@ -182,21 +185,23 @@ void INIT_SD(){
 void WRITE_SD(){
   
   if (SD_in == true) {   
-    myFile = SD.open("TestVals.csv",  FILE_WRITE);
+    myFile = SD.open("/Telem.csv",  FILE_APPEND);
     if (myFile) {
       display.println("WRITING");
-      Serial.println(myFile.position());
-      //myFile.seek(EOF);
-      myFile.print(2); 
-      //return true
+      
+      myFile.print(millis()); 
+      myFile.print(",");
+      myFile.print("Data,");
+      myFile.println("WORKING");
+      
+      myFile.close();
     } else {
       SD_in = false;
       display.println("SD CARD error");
-    }
-    myFile.close();
+    } 
   }
-  //return false
 }
+
 // Read data from other microcontroller
 void SERIAL_READ() {
   while (Serial2.available()>0) {
