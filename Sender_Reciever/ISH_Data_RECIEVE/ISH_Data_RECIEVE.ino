@@ -28,6 +28,8 @@ const int MODE_PIN = 32; // Uses the adc and V deviders to allow for everything 
 // SD Setup
 File myFile;
 bool SD_in = false;
+String FILE_NAME = "/telem_";
+String F_EXTENSION = ".csv";
 
 // Main Vars
 int MODE = 0;
@@ -119,7 +121,6 @@ void loop() {
   display.display();
 }
 
-
 // ---- HELPER FUNCTIONS ----
 
 void DISPLAY_FUNC() {
@@ -180,21 +181,36 @@ void INIT_SD() {
   }
   uint8_t cardType = SD.cardType();
 
-  // filename = "/Telem.csv" // We need a function here that automatically gets a new filename every time the ESP restarts, so it doesn't overwrite anything
-
-  if (cardType == CARD_NONE) {
+  if (cardType == CARD_NONE) { // SD CARD NOT FOUND
     Serial.println("No SD card attached");
     SD_in = false;
-  } else {
+  } else { // SD CARD IS FOUND
     SD_in = true;
-    myFile = SD.open("/Telem.csv", FILE_WRITE);
+    // Count how many files are currently on the SD card
+    File dir = SD.open("/");
+    int num_files = 0;
+    while (true) {
+      File entry =  dir.openNextFile();
+      if (!entry) { // No more files
+        break;
+      }
+      Serial.print(entry.name());
+      if (!entry.isDirectory()) {
+        num_files++;
+      }
+      entry.close();
+    }
+    Serial.println(num_files);
+    FILE_NAME = FILE_NAME + num_files + F_EXTENSION;
+    Serial.println(FILE_NAME);
+    // Create and initialize the telemetry file
+    myFile = SD.open(FILE_NAME, FILE_WRITE);
     if (!myFile) {
       myFile.println("Time,Bat1V,Bat2V,Current");  // Initializes the data CSV with header
     }
     myFile.close();
     Serial.println("SD Setup");
   }
-
   // Currently no check to see how much space left, and to stop writing when a threshold is reached. Currently just ensure that the card is empty before running and hope for the best
 
   //SD_space = SD.cardSize() / (1024 * 1024);
@@ -204,7 +220,7 @@ void INIT_SD() {
 void WRITE_SD() {
 
   if (SD_in == true) {
-    myFile = SD.open("/Telem.csv", FILE_APPEND);
+    myFile = SD.open(FILE_NAME, FILE_APPEND);
     if (myFile) {
       display.println("WRITING");
 
