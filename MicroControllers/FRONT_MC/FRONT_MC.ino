@@ -128,6 +128,10 @@ void DISPLAY_FUNC() {
 
   switch (page){
     case 0: // Home page
+
+      /* Add code for the display pages here
+        Once done, remember to COMMIT and PUSH updates to the correct GITHUB branch (Display-telemetry). I will then look over it and incorperate into the MAIN branch.
+      */
       display.println(millis());
       display.println(RPM);
       display.println(MODE);
