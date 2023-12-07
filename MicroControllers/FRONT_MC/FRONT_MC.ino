@@ -1,21 +1,23 @@
 // Code for the front Micro Controller. Written by Tom Brouwers
 // Please ONLY edit inside the function for your task. If you want to edit other things, please ask Tom.
 //test
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+
+
 #include <SD.h>
 #include <FS.h>
 #include <SPI.h>
 
+
 #define SERIAL_BUFFER_SIZE 64
 
 // Screen Setup
-#define SCREEN_WIDTH 128  // OLED display width, in pixels
-#define SCREEN_HEIGHT 64  // OLED display height, in pixels
 
-#define OLED_RESET -1        // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3C  ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+#include <Wire.h>
+#include <U8g2lib.h>
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
+#define ARRAYSIZE 100
+#define PIXELRANGE 50
+#define VOLTRANGE 12
 
 // PINS
 const int BTN_PIN_LEFT = 33;
@@ -36,6 +38,14 @@ int MODE = 0;
 float throttle_perc = 0;
 int RPM;
 
+// Vars from the screen - Might want to improve naming for beter readibility later
+int n=0;
+int n1=0;
+int j=0;
+byte BatteryV[ARRAYSIZE];
+float VoltMeasure=0;
+int ScreenIndex = 0;
+
 // Loop Vars
 int counter = 0;
 volatile int curTime = 0;
@@ -47,7 +57,7 @@ String data;
 //Second Serial Pins
 #define RXD2 16
 #define TXD2 17
-
+int packet = 0;
 
 // ---- INTERRUPT FUNCTIONS ----
 
@@ -72,7 +82,7 @@ void IRAM_ATTR BTN_PRESSED_RIGHT() {
 void setup() {
   delay(100);
   Serial.begin(9600); // Communication to other board
-  Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2); // Communication to HC12
+  Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2); // Communication to HC12. Lower this to the correct serial baud rate
 
   // - Interupt and Pin Setup -
 
@@ -87,6 +97,7 @@ void setup() {
   INIT_SD();
 
   // - Screen Setup -
+  /* //OLD
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
     for (;;)
@@ -100,6 +111,13 @@ void setup() {
   display.setTextSize(1);
   display.println("SETUP");
   display.display();
+  */
+  // New
+  if (!u8g2.begin()){
+    for(;;)
+    ;
+  }
+  u8g2.clearBuffer();
 
   delay(1000);
 }
@@ -107,10 +125,14 @@ void setup() {
 // ---- MAIN LOOP ----
 
 void loop() {
-  display.clearDisplay();
+  //display.clearDisplay();
+  u8g2.clearBuffer();
 
   SERIAL_READ();
   READ_MODE();
+
+  PROCESS_DATA();
+
   if (counter % 3 == 0) {
     WRITE_SD();
   }
@@ -118,46 +140,112 @@ void loop() {
   DISPLAY_FUNC();
 
   counter++;
-  display.display();
+  u8g2.sendBuffer();
 }
 
 // ---- HELPER FUNCTIONS ----
 
 void DISPLAY_FUNC() {
-  display.setCursor(0, 0);
-
+  int t = millis();
+  int s = 20;
+  int b1 = 70;
+  int b2 = 60;
+  int ti = 60;
+  int th = 1;
   switch (page){
     case 0: // Home page
-      display.println(millis());
-      display.println(RPM);
-      display.println(MODE);
-      display.print(F("Throttle:"));
-      display.println(throttle_perc);
+      u8g2.setFont(u8g2_font_ncenB08_tr);
 
-      if (digitalRead(BTN_PIN_LEFT) == LOW) {
-        display.println("Left BTN HIGH");
-      }
-      if (digitalRead(BTN_PIN_RIGHT) == LOW) {
-        display.println("Right BTN HIGH");
-      }
+      // Display B1
+      u8g2.setCursor(0, 45);
+      u8g2.print("B1: ");
+      u8g2.setCursor(20, 45);
+      u8g2.print(b1);
+      u8g2.print("%");
+
+      // Display B2
+      u8g2.setCursor(0, 60);
+      u8g2.print("B2: ");
+      u8g2.setCursor(20, 60);
+      u8g2.print(b2);
+      u8g2.print("%");
+
+      // Display Power
+      u8g2.setCursor(0, 25);
+      u8g2.print("M: Power");
+
+      // Display Ti
+      u8g2.setCursor(60, 25);
+      u8g2.print("Ti: ");
+      u8g2.setCursor(80, 25);
+      u8g2.print(ti);
+      u8g2.print("min");
+
+      /*// Display Temperature
+      u8g2.setCursor(60, 20);
+      u8g2.print("Temp: ");
+      u8g2.setCursor(90, 20);
+      u8g2.print(t);
+      u8g2.cp437(true);
+      u8g2.write(167);
+      u8g2.print("C"); */
+
+      // Display Speed
+      u8g2.setCursor(60, 45);
+      u8g2.print("S: ");
+      u8g2.setCursor(72, 45);
+      u8g2.print(s);
+      u8g2.print(" k/h");
+
+      // Display Th
+      u8g2.setCursor(60, 60);
+      u8g2.print("Th: ");
+      u8g2.setCursor(78, 60);
+      u8g2.print(th);
+      u8g2.print("min");
+
+      // Draw lines
+      u8g2.drawLine(55, 0, 55, 64);
+      u8g2.drawLine(0, 30, 128, 30);
+
       break;
 
-    case 1: // Settings?
-      display.println("Page 2");
-      break;
-
+    //case 1: // Settings?
+      
+      //break;
+        
     case 2: // Graphs / data
-      display.println("Page 3");
+      
+        u8g2.drawFrame(2, 0, 126, 63);  // draw frame
+        for(j=0;j<=n;j++)
+        {
+          u8g2.drawPixel(j,BatteryV[j]);
+        }
+      
       break;
-
+    /*
     case 3: // Graphs / data
-      display.println("Page 4");
       break;
-
+    */
     default:
-      display.println("ERROR with the page");
       break;
+      
   }
+}
+
+//-- Proccess Data
+
+void PROCESS_DATA(){
+  VoltMeasure=5+5*sin(n1*0.1);
+  BatteryV[n]=PIXELRANGE+3-VoltMeasure*PIXELRANGE/VOLTRANGE;    // convert voltage value into pixel height
+  if(n==ARRAYSIZE-1){ 
+    for(j=0;j<ARRAYSIZE;j++) BatteryV[j]=BatteryV[j+1];
+  } 
+    else {
+      n++;
+  }
+  //if(n==ARRAYSIZE-1) n=0; else n++;
+  n1++; 
 }
 
 // -- Mode
@@ -222,7 +310,7 @@ void WRITE_SD() {
   if (SD_in == true) {
     myFile = SD.open(FILE_NAME, FILE_APPEND);
     if (myFile) {
-      display.println("WRITING");
+      //display.println("WRITING");
 
       myFile.print(millis());
       myFile.print(",");
@@ -232,7 +320,7 @@ void WRITE_SD() {
       myFile.close();
     } else {
       SD_in = false;
-      display.println("SD CARD error");
+      //display.println("SD CARD error");
     }
   }
 }
@@ -240,7 +328,18 @@ void WRITE_SD() {
 // -- HC12
 
 void TRANSMIT_DATA() {
-  // Add the code to send data via the HC12 to the pits
+  // Add the code to send data via the HC12 to the pit
+  
+  //int time_sec = millis() / 1000;
+  Serial2.print("P"); // 
+  Serial2.print(packet);
+  Serial2.print("Data header");
+  Serial2.println("The data itself");
+
+  packet++; // Packet counter to detect if data transmission has been missed
+  if (packet >= 100){
+    packet = 0;
+  }
 }
 
 // -- Serial
