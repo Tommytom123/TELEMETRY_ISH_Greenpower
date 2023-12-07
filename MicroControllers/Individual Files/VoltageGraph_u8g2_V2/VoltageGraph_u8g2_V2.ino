@@ -187,8 +187,6 @@ void changeDisplayContent() {
   int ti = 60;
   int th = 1;
 
-  
-
   u8g2.setFont(u8g2_font_ncenB08_tr);
 
   // Display B1
@@ -245,9 +243,5 @@ void changeDisplayContent() {
 
   // Send the content to the display
   u8g2.sendBuffer();
-
-
-
-  
 }
 
