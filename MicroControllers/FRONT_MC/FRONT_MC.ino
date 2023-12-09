@@ -15,14 +15,15 @@
 #include <Wire.h>
 #include <U8g2lib.h>
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE); // Chnage this to the correct display
-#define ARRAYSIZE 100
-#define PIXELRANGE 50
+
+#define ARRAYSIZE 120 // How wide the graphs are in pixels
+#define PIXELRANGE 50 // How high the graphs are in pixels (Might want to change the naming convention here to make it consistent with above)
 #define VOLTRANGE 12
 
 // PINS
 const int BTN_PIN_LEFT = 33;
 const int BTN_PIN_RIGHT = 25;
-const int MODE_PIN = 32; // Uses the adc and V deviders to allow for everything to work off of one singular pin :) Explaination should be on document
+const int MODE_PIN = 32; // Uses the adc and V deviders to allow for everything to work off of one singular pin :) Explaination should be on document later...
 
 // const int MODE_SWITCH = ; // Commented out as I need more pins :\ .
 // Likely a 3 way switch where we can change the car driving mode - Max Efficiency, Slow, Max Speed
@@ -97,21 +98,6 @@ void setup() {
   INIT_SD();
 
   // - Screen Setup -
-  /* //OLD
-  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;)
-      ;  // Don't proceed, loop forever
-  }
-  Serial.println(F("Screen Setup"));
-
-  // Clear the buffer
-  display.clearDisplay();
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
-  display.println("SETUP");
-  display.display();
-  */
   // New
   if (!u8g2.begin()){
     for(;;)
@@ -146,8 +132,8 @@ void loop() {
 // ---- HELPER FUNCTIONS ----
 
 void DISPLAY_FUNC() {
-  int t = millis();
-  int s = 20;
+  float t = millis();
+  float s = throttle_perc;//20;
   int b1 = 70;
   int b2 = 60;
   int ti = 60;
@@ -217,7 +203,7 @@ void DISPLAY_FUNC() {
     case 2: // Graphs / data
       
         u8g2.drawFrame(2, 0, 126, 63);  // draw frame
-        for(j=0;j<=n;j++)
+        for(j=3;j<=n+3;j++) // From starting pixel to the ending pixel
         {
           u8g2.drawPixel(j,BatteryV[j]);
         }
@@ -236,15 +222,14 @@ void DISPLAY_FUNC() {
 //-- Proccess Data
 
 void PROCESS_DATA(){
-  VoltMeasure=5+5*sin(n1*0.1);
-  BatteryV[n]=PIXELRANGE+3-VoltMeasure*PIXELRANGE/VOLTRANGE;    // convert voltage value into pixel height
+  VoltMeasure=throttle_perc; //5+5*sin(n1*0.1);
+  BatteryV[n]= map((throttle_perc*100),0,100,PIXELRANGE,0);//PIXELRANGE+3-VoltMeasure*PIXELRANGE/VOLTRANGE;    // convert voltage value into pixel height
   if(n==ARRAYSIZE-1){ 
-    for(j=0;j<ARRAYSIZE;j++) BatteryV[j]=BatteryV[j+1];
+    for(j=0;j<ARRAYSIZE;j++) BatteryV[j]=BatteryV[j+1]; // Shifts everything in the array over
   } 
     else {
       n++;
   }
-  //if(n==ARRAYSIZE-1) n=0; else n++;
   n1++; 
 }
 

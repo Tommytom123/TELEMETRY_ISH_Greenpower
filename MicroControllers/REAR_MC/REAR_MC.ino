@@ -6,7 +6,7 @@
 // PINS
 const int RPM_PIN = 5;
 const int THROTTLE_PIN_IN = 32; // ADC where Potentiometer is connected to
-const int MOTOR_CONTROLLER_PWM = ;
+const int MOTOR_CONTROLLER_PWM = 27;
 
 // Variables
 volatile int RPM = 0;
@@ -50,6 +50,10 @@ void setup() {
   pinMode(RPM_PIN, INPUT);
   attachInterrupt(RPM_PIN, RPM_Func, RISING);
   
+  //Setup the connection to the Motor Controller - We are using the ledc functionality of the ESP32 to generate a PWM signal
+  ledcAttachPin(MOTOR_CONTROLLER_PWM, 0); // Pin, Channel 
+  ledcSetup(0, 1000, 8); // Channel, Frequency (Hz), Resolution (Bits)
+
   Serial.println(F("Gyro Setup"));
 }
 
@@ -96,7 +100,7 @@ void READ_ADC(){
 // -- Motor Controller
 
 void DRIVE_CONTROLLER(){
-  analogWrite()
+  ledcWrite(0, map(throttle_perc*100,0,100,0,255)); // Creates the PWM signal - Channel, Value in assigned resolution
 }
 
 // -- SERIAL
