@@ -81,7 +81,17 @@ float VoltMeasure=0;
 int ScreenIndex = 0;
 
 
+int buttonState=0;            // the current reading from the input pin
+int lastButtonState = HIGH;  // the previous reading from the input pin
+
+// the following variables are unsigned longs because the time, measured in
+// milliseconds, will quickly become a bigger number than can be stored in an int.
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 50;  
+
+
 void setup(void) {
+  
   //Serial.begin(115200);
   u8g2.begin();
   pinMode(8, INPUT_PULLUP);
@@ -100,6 +110,42 @@ void setup(void) {
 
 
 void loop(void) {
+
+  int reading = digitalRead(8);
+
+   // If the switch changed, due to noise or pressing:
+  if (reading ==LOW && lastButtonState==HIGH) {
+    // reset the debouncing timer
+    lastDebounceTime = millis();
+    buttonState=1;
+  }
+
+  if ((millis() - lastDebounceTime) > debounceDelay && buttonState==1) {
+    // whatever the reading is at, it's been there for longer than the debounce
+    // delay, so take it as the actual current state:
+
+    // if the button state has changed:
+    if (reading == LOW) {
+      //buttonState = reading;
+      ScreenIndex += 1; 
+    if (ScreenIndex >= 2) {
+        ScreenIndex = 0;
+    }
+
+    }
+    buttonState=0;
+    //lastDebounceTime = millis();
+    //lastButtonState = reading;
+  }
+
+  // save the reading. Next time through the loop, it'll be the lastButtonState:
+  lastButtonState = reading;
+
+  //if (buttonState == LOW) {
+    
+  //  buttonState=HIGH;
+  //}
+
   //u8g2.firstPage();
   //do {
     //u8g2.setFont(u8g2_font_ncenB14_tr);	// choose a suitable font
@@ -114,6 +160,9 @@ void loop(void) {
 
   //u8g2.firstPage();
   //do {
+    if (ScreenIndex == 0){
+
+    
   u8g2.clearBuffer();					// clear the internal memory
   
   //BatteryV[n]=5+5*sin(n1*0.1);
@@ -158,17 +207,13 @@ void loop(void) {
   u8g2.sendBuffer();					// transfer internal memory to the display
   //delay(500);
 
-
+  }
   // From Adafruit Code
 
-  int buttonState = digitalRead(8);
 
 
   
-  if (buttonState == LOW) {
-    ScreenIndex += 1; 
-  }
-  while (ScreenIndex == 1) {
+  if (ScreenIndex == 1) {
     changeDisplayContent();
   }
 
@@ -186,6 +231,8 @@ void changeDisplayContent() {
   int b2 = 60;
   int ti = 60;
   int th = 1;
+
+  
 
   u8g2.setFont(u8g2_font_ncenB08_tr);
 
@@ -243,5 +290,9 @@ void changeDisplayContent() {
 
   // Send the content to the display
   u8g2.sendBuffer();
+
+
+
+  
 }
 
