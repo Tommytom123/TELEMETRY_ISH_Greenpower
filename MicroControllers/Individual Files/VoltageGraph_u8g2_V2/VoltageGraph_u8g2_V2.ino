@@ -160,15 +160,23 @@ void loop(void) {
 
   //u8g2.firstPage();
   //do {
+
+    VoltMeasure=5+5*sin(n1*0.1);
+  //Serial.print("n = ");Serial.print(n);Serial.print(" ;   ->  Bat Volt = ");Serial.print(BatteryV[n]);
+  BatteryV[n]=PIXELRANGE+3-VoltMeasure*PIXELRANGE/VOLTRANGE;    // convert voltage value into pixel height
+
+  if(n==ARRAYSIZE-1){ for(j=0;j<ARRAYSIZE;j++) BatteryV[j]=BatteryV[j+1];} else n++;
+  //if(n==ARRAYSIZE-1) n=0; else n++;
+  n1++; 
+  
+
     if (ScreenIndex == 0){
 
     
   u8g2.clearBuffer();					// clear the internal memory
   
   //BatteryV[n]=5+5*sin(n1*0.1);
-  VoltMeasure=5+5*sin(n1*0.1);
-  //Serial.print("n = ");Serial.print(n);Serial.print(" ;   ->  Bat Volt = ");Serial.print(BatteryV[n]);
-  BatteryV[n]=PIXELRANGE+3-VoltMeasure*PIXELRANGE/VOLTRANGE;    // convert voltage value into pixel height
+  
   //Serial.print("  pixel height = ");Serial.println(BatteryV[n]);
 
   //testecheck=(5+5*sin(n1*0.1))*10;
@@ -197,9 +205,7 @@ void loop(void) {
   //delay(100);
   
   //delay(1000);
-  if(n==ARRAYSIZE-1){ for(j=0;j<ARRAYSIZE;j++) BatteryV[j]=BatteryV[j+1];} else n++;
-  //if(n==ARRAYSIZE-1) n=0; else n++;
-  n1++;  
+   
   
   //} while(u8g2.nextPage());
   //u8g2.clearDisplay();
