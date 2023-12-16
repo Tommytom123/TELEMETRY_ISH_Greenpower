@@ -6,6 +6,7 @@
 // PINS
 const int RPM_PIN = 5;
 const int THROTTLE_PIN_IN = 32; // ADC where Potentiometer is connected to
+const int MOTOR_CONTROLLER_PWM = 27;
 
 // Variables
 volatile int RPM = 0;
@@ -15,8 +16,12 @@ volatile unsigned long prevTimeRPM = 0;
 float throttle_perc = 0;
 
 /*
+//Main Data Variables
 motorTemp
-
+controllerTemp
+Bat1V
+Bat2V 
+CurrentDraw
 */
 
 // Serial Read Vars
@@ -45,12 +50,14 @@ void setup() {
   pinMode(RPM_PIN, INPUT);
   attachInterrupt(RPM_PIN, RPM_Func, RISING);
   
+  //Setup the connection to the Motor Controller - We are using the ledc functionality of the ESP32 to generate a PWM signal
+  ledcAttachPin(MOTOR_CONTROLLER_PWM, 0); // Pin, Channel 
+  ledcSetup(0, 1000, 8); // Channel, Frequency (Hz), Resolution (Bits)
+
   Serial.println(F("Gyro Setup"));
 }
 
 void loop() {
-  //int curtime = millis(); 
-
 
   if (digitalRead(RPM_PIN) == HIGH){ // Stops 'bouncing' of the hall effect sensor. The reason why there is a difference between 'prevTime' and 'lowTime' is because the former is the time the moment a magnet was detected, while the latter changes to the latest time a magnet was detected. Ask Tom Brouwers for more information if necessary.
     lowTimeRPM = millis();
@@ -59,11 +66,12 @@ void loop() {
   }
   
   GET_THROT_PERC();
-
   READ_SERIAL();
+
+  DRIVE_CONTROLLER();
   SEND_SERIAL();
 
-  
+    
   delay(10);
 }
 
@@ -86,13 +94,13 @@ void READ_ADC(){
   // Bat V 1
   // Bat V 2
   // Current
-  //Throttle?
-
+  // Throttle?
 }
 
 // -- Motor Controller
 
 void DRIVE_CONTROLLER(){
+  ledcWrite(0, map(throttle_perc*100,0,100,0,255)); // Creates the PWM signal - Channel, Value in assigned resolution
 }
 
 // -- SERIAL
