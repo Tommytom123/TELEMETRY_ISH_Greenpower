@@ -1,0 +1,14 @@
+﻿Column 2,Column 3,Column 4,Column 5
+Designator,Footprint,Quantity,Designation
+U2,SOIC-8_3.9x4.9mm_P1.27mm,1,MCP6002DRG
+"R18,R9,R19,R17,R16,R15,R10",R_0805_2012Metric,7,10k
+"C2,C1",C_0805_2012Metric,2,C
+"U5,U4",TSSOP-10_3x3mm_P0.5mm,2,ADS1115IDGS
+"C4,C5",C_0805_2012Metric,2,100nF
+"R8,R7",R_0805_2012Metric,2,4.7k
+R11,R_0805_2012Metric,1,47k
+"R3,R1,R6,R5,R2,R4",R_0805_2012Metric,6,R
+U1,Converter_DCDC_TRACO_TSR-1_THT,1,TSR_1-2450
+"R12,R14",R_0805_2012Metric,2,1k
+C3,C_0805_2012Metric,1,1u
+R13,R_0805_2012Metric,1,220

@@ -1,0 +1,43 @@
+﻿pos_x,pos_y,rotation,side,designator,mpn,pack,value,mount_type,place
+83.4125,-53.5,0.0,top,C1,,C_0805_2012Metric,C,smt,True
+88.5,-53.5,180.0,top,C2,,C_0805_2012Metric,C,smt,True
+83.2,-70.4,180.0,top,C3,,C_0805_2012Metric,1u,smt,True
+72.5,-51.0,90.0,top,C4,,C_0805_2012Metric,100nF,smt,True
+72.5,-62.5,-90.0,top,C5,,C_0805_2012Metric,100nF,smt,True
+49.2,-57.4,180.0,top,ESP1,,MODULE_ESP32_DEVKIT_V1,ESP32-DEVKIT-V1,tht,True
+72.0,-81.0,180.0,top,J1,,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,Power (9v),tht,True
+104.5,-76.0,-90.0,top,J10,,JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical,Throttle HallEffect,tht,True
+73.0,-35.0,180.0,top,J2,,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,Data (RX TX),tht,True
+88.5,-81.0,180.0,top,J3,,JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical,RPM Sensor,tht,True
+103.0,-35.0,180.0,top,J4,,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,Bat 1V,tht,True
+103.0,-41.775,180.0,top,J5,,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,Bat 1+2 V,tht,True
+103.0,-55.375,180.0,top,J6,,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,Motor Temp,tht,True
+103.0,-48.575,180.0,top,J7,,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,Motor Controller Temp,tht,True
+96.5,-73.525,-90.0,top,J8,,JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical,Current Sensor,tht,True
+91.95,-33.825,-90.0,top,J9,,JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical,Motor Controller,tht,True
+83.4125,-48.5,180.0,top,R1,,R_0805_2012Metric,R,smt,True
+89.2,-70.4,180.0,top,R10,,R_0805_2012Metric,10k,smt,True
+89.2,-73.4,0.0,top,R11,,R_0805_2012Metric,47k,smt,True
+85.5,-38.3,90.0,top,R12,,R_0805_2012Metric,1k,smt,True
+85.5,-33.3,-90.0,top,R13,,R_0805_2012Metric,220,smt,True
+83.2,-73.4,180.0,top,R14,,R_0805_2012Metric,1k,smt,True
+67.6,-62.5,-90.0,top,R15,,R_0805_2012Metric,10k,smt,True
+70.0,-51.0,90.0,top,R16,,R_0805_2012Metric,10k,smt,True
+70.0,-62.5,-90.0,top,R17,,R_0805_2012Metric,10k,smt,True
+70.0,-55.0,-90.0,top,R18,,R_0805_2012Metric,10k,smt,True
+72.5,-55.0,-90.0,top,R19,,R_0805_2012Metric,10k,smt,True
+83.4125,-51.0,0.0,top,R2,,R_0805_2012Metric,R,smt,True
+105.0,-70.31,90.0,top,R20,,R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal,?,tht,True
+101.5,-70.31,90.0,top,R21,,R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal,?,tht,True
+88.5,-48.5,0.0,top,R3,,R_0805_2012Metric,R,smt,True
+88.5,-51.0,180.0,top,R4,,R_0805_2012Metric,R,smt,True
+93.5,-58.5,0.0,top,R5,,R_0805_2012Metric,R,smt,True
+93.5,-56.0,0.0,top,R6,,R_0805_2012Metric,R,smt,True
+96.7,-63.4,0.0,top,R7,,R_0805_2012Metric,4.7k,smt,True
+96.7,-65.9,0.0,top,R8,,R_0805_2012Metric,4.7k,smt,True
+96.7,-68.4,0.0,top,R9,,R_0805_2012Metric,10k,smt,True
+74.5,-70.5,180.0,top,U1,,Converter_DCDC_TRACO_TSR-1_THT,TSR_1-2450,tht,True
+89.2,-65.4,180.0,top,U2,,SOIC-8_3.9x4.9mm_P1.27mm,MCP6002-xP,smt,True
+82.275,-32.5,-90.0,top,U3,,DIP-4_W7.62mm,PC817,tht,True
+76.2,-51.0,-90.0,top,U4,,TSSOP-10_3x3mm_P0.5mm,ADS1115IDGS,smt,True
+76.2,-62.5,90.0,top,U5,,TSSOP-10_3x3mm_P0.5mm,ADS1115IDGS,smt,True

@@ -1,0 +1,26 @@
+﻿designator,quantity,value,pack,mpn,mount_type
+"C1, C2",2,C,C_0805_2012Metric,,smt
+C3,1,1u,C_0805_2012Metric,,smt
+"C4, C5",2,100nF,C_0805_2012Metric,,smt
+ESP1,1,ESP32-DEVKIT-V1,MODULE_ESP32_DEVKIT_V1,,tht
+J1,1,Power (9v),JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,,tht
+J10,1,Throttle HallEffect,JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical,,tht
+J2,1,Data (RX TX),JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,,tht
+J3,1,RPM Sensor,JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical,,tht
+J4,1,Bat 1V,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,,tht
+J5,1,Bat 1+2 V,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,,tht
+J6,1,Motor Temp,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,,tht
+J7,1,Motor Controller Temp,JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,,tht
+J8,1,Current Sensor,JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical,,tht
+J9,1,Motor Controller,JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical,,tht
+"R1, R2, R3, R4, R5, R6",6,R,R_0805_2012Metric,,smt
+"R10, R15, R16, R17, R18, R19, R9",7,10k,R_0805_2012Metric,,smt
+R11,1,47k,R_0805_2012Metric,,smt
+"R12, R14",2,1k,R_0805_2012Metric,,smt
+R13,1,220,R_0805_2012Metric,,smt
+"R20, R21",2,?,R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal,,tht
+"R7, R8",2,4.7k,R_0805_2012Metric,,smt
+U1,1,TSR_1-2450,Converter_DCDC_TRACO_TSR-1_THT,,tht
+U2,1,MCP6002-xP,SOIC-8_3.9x4.9mm_P1.27mm,,smt
+U3,1,PC817,DIP-4_W7.62mm,,tht
+"U4, U5",2,ADS1115IDGS,TSSOP-10_3x3mm_P0.5mm,,smt
