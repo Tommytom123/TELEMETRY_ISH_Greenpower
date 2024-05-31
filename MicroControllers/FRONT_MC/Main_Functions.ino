@@ -1,5 +1,5 @@
 
-// Code for the front Micro Controller. Written and compiled by Tom Brouwers. Elements by Elena and Alessandro.
+// Code for the front Micro Controller. Written and compiled by Tom Brouwers. Elements by Elena Bilz Fernandes and Alessandro Fini.
 // For use on the 2023/24 PCB boards.
 // If you have any questions please email me at tommytom2006@icloud.com - or if ended up deprecating that one, please use tommaxbrouwers@gmail.com
 
@@ -539,8 +539,6 @@ void WRITE_SD() { // Makes the code run at ~ 18 FPS
       myFile.print(",");
       myFile.print(internalBatV);
       myFile.print(",");
-      myFile.print(RPM);
-      myFile.print(",");
       myFile.print(Bat1V);
       myFile.print(",");
       myFile.print(Bat2V);
@@ -563,11 +561,12 @@ void WRITE_SD() { // Makes the code run at ~ 18 FPS
 // -- HC12
 
 void TRANSMIT_DATA() {
+  //For any questions regarding data transmission, contact me at alessandro.l.fini@gmail.com
   // Add the code to send data via the HC12 to the pit lane
   if (settingVals[1][0] == 1) {
-    Serial2.print(millis());
-    Serial2.print(data);
-    Serial2.println(packet);  //
+   //Serial2.print(millis());
+    char hc12data[54];
+    sprintf(hc12data, "%06i%06i%06i%06i%06i%06i%06i%06i%06i", packet, RPM, current, internalBatV, Bat1V, Bat2V, MotorTemp, controllerTemp, throttle_perc);
     //Serial2.print(millis());
     //Serial2.println(packet);
     // Serial2.println("The data itself");
@@ -576,6 +575,73 @@ void TRANSMIT_DATA() {
       packet = 0;
     }
   }
+}
+
+void FECencoder(char messagestring[msglen]) {
+  //For any questions, contact me at alessandro.l.fini@gmail.com
+  String data;
+  //Setting array parameters for encoded output.
+  char encoded[msglen + ECC_LENGTH];
+  char message_frame[msglen];
+
+  memset(message_frame, 0, sizeof(message_frame));                       // Clear the array
+  for (uint i = 0; i <= msglen; i++) { message_frame[i] = message[i]; }  // Fill with the message
+
+  //Encode input
+  rs.Encode(message_frame, encoded);
+  //Convert encoded output from char to string.
+  for (uint i = 0; i < sizeof(encoded); i++) { data = data + encoded[i]; }
+
+  //Send output string to escaping functions.
+  byteEscaping(data);
+}
+
+void byteEscaping(String input) {
+  String output;
+  int len = input.length() + 1;
+  int outlen = output.length() + 1;
+  char inputarray[len];
+  char outputarray[outlen];
+
+  //Converting input string to char.
+  input.toCharArray(inputarray, len);
+
+  for (int i = 0; i < len - 1; i++) {
+
+    //If the STARTBYTE is found mid message, it will add a second one next to it, and the receiving end will be programmed to ignore it.
+    if (inputarray[i] == STARTBYTE) {
+      output = output + inputarray[i];
+      output = output + STARTBYTE;
+    } else {
+      output = output + inputarray[i];
+    }
+    if (i == len - 1) {
+      break;
+    }
+  }
+
+  output.toCharArray(outputarray, outlen);
+
+  for (int i = 0; i < len - 1; i++) {
+
+    //If the STARTBYTE is found mid message, it will add a second one next to it, and the receiving end will be programmed to ignore it.
+    if (outputarray[i] == ENDBYTE) {
+      output = output + outputarray[i];
+      output = output + ENDBYTE;
+    } else {
+      output = output + outputarray[i];
+    }
+    if (i == len - 1) {
+      break;
+    }
+  }
+  packager(output);
+}
+
+void packager(String data) {
+  Serial2.print(STARTBYTE);
+  Serial2.print(data);
+  Serial2.println(ENDBYTE);
 }
 
 // -- Serial
